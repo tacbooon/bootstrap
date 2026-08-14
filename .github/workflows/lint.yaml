@@ -1,0 +1,73 @@
+name: Lint
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+on:
+  push:
+    paths:
+      - 'install.sh'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'install.sh'
+      - '.github/workflows/**'
+
+jobs:
+  shellcheck:
+    name: Lint install.sh with shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check install.sh with shellcheck
+        shell: bash
+        run: |
+          shellcheck install.sh
+  actionlint:
+    name: Lint GitHub Actions workflow files with actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download actionlint
+        id: get_actionlint
+        shell: bash
+        run: |
+          ACTIONLINT_VERSION="1.7.12"
+          ACTIONLINT_TAR_HASH="8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+          ACTIONLINT_URL="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          ACTIONLINT_TMP_DIR="$(mktemp -d)"
+          echo "Downloading actionlint from $ACTIONLINT_URL to $ACTIONLINT_TMP_DIR"
+          cd "$ACTIONLINT_TMP_DIR"
+          curl -sSLf "$ACTIONLINT_URL" -o actionlint.tar.gz
+          echo "$ACTIONLINT_TAR_HASH  actionlint.tar.gz" | sha256sum --check --quiet
+          tar -xzf actionlint.tar.gz actionlint
+          echo "executable=$ACTIONLINT_TMP_DIR/actionlint" >> "$GITHUB_OUTPUT"
+      - name: Check workflow files with actionlint
+        shell: bash
+        env:
+          ACTIONLINT_BIN: ${{ steps.get_actionlint.outputs.executable }}
+        run: |
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          "$ACTIONLINT_BIN" -color
+  zizmor:
+    name: Lint GitHub Actions workflow files with zizmor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check workflow files with zizmor
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          advanced-security: false
