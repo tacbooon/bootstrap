@@ -49,7 +49,7 @@ if [ "$NEW_HOSTNAME" != "$DEFAULT_HOSTNAME" ]; then
       sudo scutil --set LocalHostName "$NEW_HOSTNAME"
       ;;
     nixos|linux)
-      sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+      sudo hostname "$NEW_HOSTNAME"
       ;;
   esac
 fi
@@ -72,7 +72,7 @@ else
   echo "Generating SSH key..."
   mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
-  nix shell nixpkgs#openssh -c ssh-keygen -t ed25519 -N "" -f "$PRIVATE_KEY_PATH" -C "$HOSTNAME"
+  nix-shell -p openssh --run "ssh-keygen -t ed25519 -N '' -f '$PRIVATE_KEY_PATH' -C '$NEW_HOSTNAME'"
 fi
 
 # GitHub に SSH 公開鍵を登録するように促します。
@@ -87,9 +87,9 @@ if [ -d "$DOTFILES_DIR/.git" ]; then
   echo "dotfiles repository already exists at $DOTFILES_DIR"
 else
   mkdir -p "$DOTFILES_DIR"
-  nix shell nixpkgs#git nixpkgs#openssh -c \
-    env GIT_SSH_COMMAND="ssh -i $PRIVATE_KEY_PATH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
-    git clone "$DOTFILES_URL" "$DOTFILES_DIR"
+  nix-shell -p git openssh --run "\
+    env GIT_SSH_COMMAND='ssh -i $PRIVATE_KEY_PATH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new' \
+    git clone '$DOTFILES_URL' '$DOTFILES_DIR'"
 fi
 
 # dotfiles を使ってシステム設定を再構築します。
