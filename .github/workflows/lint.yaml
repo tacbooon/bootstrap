@@ -11,10 +11,14 @@ on:
   push:
     paths:
       - 'install.sh'
+      - '.shellcheckrc'
+      - '.github/actionlint-matcher.json'
       - '.github/workflows/**'
   pull_request:
     paths:
       - 'install.sh'
+      - '.shellcheckrc'
+      - '.github/actionlint-matcher.json'
       - '.github/workflows/**'
 
 jobs:
