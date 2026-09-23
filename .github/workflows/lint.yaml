@@ -1,77 +1,50 @@
 name: Lint
 
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 permissions:
   contents: read
 
-on:
-  push:
-    paths:
-      - 'install.sh'
-      - '.shellcheckrc'
-      - '.github/actionlint-matcher.json'
-      - '.github/workflows/**'
-  pull_request:
-    paths:
-      - 'install.sh'
-      - '.shellcheckrc'
-      - '.github/actionlint-matcher.json'
-      - '.github/workflows/**'
-
 jobs:
-  shellcheck:
-    name: Lint install.sh with shellcheck
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Check install.sh with shellcheck
-        shell: bash
-        run: |
-          shellcheck install.sh
-  actionlint:
-    name: Lint GitHub Actions workflow files with actionlint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         with:
-          persist-credentials: false
-      - name: Download actionlint
-        id: get_actionlint
-        shell: bash
-        run: |
-          ACTIONLINT_VERSION="1.7.12"
-          ACTIONLINT_TAR_HASH="8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
-          ACTIONLINT_URL="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          ACTIONLINT_TMP_DIR="$(mktemp -d)"
-          echo "Downloading actionlint from $ACTIONLINT_URL to $ACTIONLINT_TMP_DIR"
-          cd "$ACTIONLINT_TMP_DIR"
-          curl -sSLf "$ACTIONLINT_URL" -o actionlint.tar.gz
-          echo "$ACTIONLINT_TAR_HASH  actionlint.tar.gz" | sha256sum --check --quiet
-          tar -xzf actionlint.tar.gz actionlint
-          echo "executable=$ACTIONLINT_TMP_DIR/actionlint" >> "$GITHUB_OUTPUT"
-      - name: Check workflow files with actionlint
-        shell: bash
-        env:
-          ACTIONLINT_BIN: ${{ steps.get_actionlint.outputs.executable }}
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+      - name: Load dev tools
+        uses: tacbooon/nix-devshell-action@3a458f492717032fac03692cae6157662bbac49e # v1.1.0
+      - name: Run flake check
+        run: nix flake check
+      - name: Run nixfmt check
+        run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
+      - name: Run actionlint check
         run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
-          "$ACTIONLINT_BIN" -color
-  zizmor:
-    name: Lint GitHub Actions workflow files with zizmor
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Check workflow files with zizmor
-        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
-        with:
-          advanced-security: false
+          actionlint -color
+      - name: Run zizmor check
+        run: zizmor . --persona auditor
+      - name: Run shellcheck
+        run: shellcheck install.sh
