@@ -28,10 +28,20 @@ $ nix-shell -p curl --run 'bash <(curl -fsSL https://raw.githubusercontent.com/t
 
 ### git
 
-このリポジトリをクローンしてから `install.sh` を実行しても構いません。
+このリポジトリをクローンしてから `install.sh` を実行しても構いません。このリポジトリはパブリックリポジトリなので HTTPS を使用して認証なしでクローンできます。
+
+```shellsession
+$ mkdir -p "$HOME/src/tacbooon"
+$ git clone https://github.com/tacbooon/bootstrap.git "$HOME/src/tacbooon/bootstrap"
+$ bash "$HOME/src/tacbooon/bootstrap/install.sh"
+```
+
+もちろん、SSH 鍵を GitHub に登録済の場合は SSH を使用しても構いません。
 
 ```shellsession
 $ mkdir -p "$HOME/src/tacbooon"
 $ git clone git@github.com:tacbooon/bootstrap.git "$HOME/src/tacbooon/bootstrap"
 $ bash "$HOME/src/tacbooon/bootstrap/install.sh"
 ```
+
+なお、SSH 鍵が存在しない場合は `install.sh` が SSH 鍵を生成し、GitHub への登録を促します。このため、このリポジトリをクローンするためにあえて SSH 鍵を事前に生成する必要はありません。
