@@ -37,7 +37,7 @@ jobs:
       - name: Load dev tools
         uses: tacbooon/nix-devshell-action@3a458f492717032fac03692cae6157662bbac49e # v1.1.0
       - name: Run flake check
-        run: nix flake check
+        run: nix flake check --all-systems
       - name: Run nixfmt check
         run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
       - name: Run actionlint check
