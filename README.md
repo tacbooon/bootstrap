@@ -4,7 +4,7 @@ PC やサーバーをセットアップするために使用する個人用の�
 
 ## 動作環境
 
-tacbooon/dotfiles を参照してください。
+[tacbooon/dotfiles](https://github.com/tacbooon/dotfiles) を参照してください。
 
 ## 使い方
 
