@@ -46,5 +46,7 @@ jobs:
           actionlint -color
       - name: Run zizmor check
         run: zizmor . --persona auditor
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Run shellcheck
         run: shellcheck install.sh
