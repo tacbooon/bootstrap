@@ -188,5 +188,10 @@ case "$OS_TYPE" in
     ;;
 esac
 
+# chezmoi を使って dotfiles を適用します。
+echo "Applying dotfiles using chezmoi..."
+chezmoi init --source "$DOTFILES_DIR"
+chezmoi apply
+
 echo "Installation completed successfully!"
 echo "Please log out and log back in (or restart your terminal) to use the new environment."
