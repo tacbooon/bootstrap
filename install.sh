@@ -160,6 +160,9 @@ else
   run_git clone "$DOTFILES_URL" "$DOTFILES_DIR" || print_error_and_exit "Failed to clone tacbooon/dotfiles."
 fi
 
+# 設定ファイルを手動で編集できるよう待機します。
+read -r -p "Edit dotfiles if needed, then press Enter to continue..." < /dev/tty || true
+
 # dotfiles を使ってシステム設定を再構築します。
 echo "Rebuilding system configuration using flake..."
 case "$OS_TYPE" in
