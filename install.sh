@@ -179,7 +179,7 @@ case "$OS_TYPE" in
     sudo "$WORK_DIR/system/sw/bin/darwin-rebuild" switch --flake "$DOTFILES_DIR#$NEW_HOSTNAME" "${EXTRA_NIX_FLAGS[@]}"
     ;;
   nixos)
-    sudo nixos-rebuild switch --flake "$DOTFILES_DIR#$NEW_HOSTNAME" "${EXTRA_NIX_FLAGS[@]}"
+    sudo NIX_CONFIG="extra-experimental-features = nix-command flakes" nixos-rebuild switch --flake "$DOTFILES_DIR#$NEW_HOSTNAME"
     ;;
   linux)
     # dotfiles の flake.lock に従う home manager を使うために一度ビルドし、その成果物を使います。
