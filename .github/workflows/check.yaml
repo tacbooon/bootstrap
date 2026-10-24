@@ -28,14 +28,14 @@ jobs:
         with:
           persist-credentials: false
       - name: Install Nix
-        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
       - name: Cache Nix store
         uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
       - name: Load dev tools
-        uses: tacbooon/nix-devshell-action@3a458f492717032fac03692cae6157662bbac49e # v1.1.0
+        uses: tacbooon/nix-devshell-action@d4ea92109a16431a11c799b1609c19bf9b7cabaf # v1.2.0
       - name: Run flake check
         run: nix flake check --all-systems
       - name: Run nixfmt check
